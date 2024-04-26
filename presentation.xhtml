@@ -1,0 +1,383 @@
+<!-- data-auto-animate -->
+<!-- fragment -->
+
+<!-- Fragment syntax: -->
+<!-- print(@{"hello, world"}@) -->
+<!-- print(@[1]{"hello, world"}@) # appears at -->
+<!-- print(@[1]{"hello, world"}@) # the same time -->
+
+<style>
+	.reveal {
+		background-color: #212121 !important;
+		background-image: url('ubuntu-rectangle.svg'), url('suru-triangles.png');
+		background-repeat: no-repeat, no-repeat;
+		background-position: 95% 0%, 0% 0%;
+		background-size: 5%, 100%;
+	}
+
+	.sc {
+		font-variant-caps: small-caps;
+	}
+
+	ul {
+		list-style-position: inside;
+		padding-left: 0;
+	}
+</style>
+<section>
+</section>
+<section>
+	<section class="light-decorate">
+		<h1><span class="sc">ace</span>ing scriptlets</h1>
+		<h4>(safe ‘Arbitrary’ Code Execution)</h4>
+		<!-- <h1>‘ace’ing <span class="sc">ace</span></h1> -->
+		<!-- <h4><i>an <span class="sc">octo</span> best effort</i></h4> -->
+	</section>
+	<section>
+		<h2>our aim</h2>
+	</section>
+	<section>
+		<ul>
+			<li>what’s the problem?</li>
+			<li fragment>what’s our solution?</li>
+			<li fragment>what’s next?</li>
+		</ul>
+	</section>
+</section>
+<section>
+	<section>
+		<h2>the problem</h2>
+	</section>
+	<section>
+		<ul>
+			<li>poor at repetition</li>
+			<li fragment>poor at conditional config</li>
+			<li fragment>drop-down list of behaviours</li>
+		</ul>
+	</section>
+	<section data-auto-animate>
+		<h2>natural reaction?</h2>
+	</section>
+	<section data-auto-animate>
+		<h2>natural reaction?</h2>
+		<h5>add programming concepts</h5>
+	</section>
+	<section>
+		<script type="text/hljs" language="toml" trim>
+resource "aws_config_config_rule" "r" {
+  name = "example" source {
+    owner = "AWS"
+    source_identifier = "S3_BUCKET_VERSIONING_ENABLED"
+    token = file("${path.module}/secrets/do-not-look.txt")
+    max_lifetime = timeadd(timestamp(), "10m")
+    platforms = setproduct(["ubuntu", "windows", "macos"], ["x86", "x64"])
+  }
+}
+		</script>
+	</section>
+	<section>
+		<script type="text/hljs" language="json" trim>
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "person": { "type": "string" },
+    "weekday": { "type": "string" }
+  },
+  "if": {
+    "anyOf": [
+      { "properties": { "person": "gustavo" } },
+      { "properties": { "weekday": { "contains": "y" } } }
+    ]
+  },
+  "then": { "properties": { "location": "in campervan" } },
+  "else": { "properties": { "location": "at home" } }
+}
+		</script>
+	</section>
+	<section>
+		<script type="text/hljs" language="yaml" trim>
+{{- if (include "kafka.createJaasSecret" .) }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "kafka.fullname" . }}-jaas
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+type: Opaque
+data:
+  {{- if (include "kafka.client.saslAuthentication" .) }}
+  {{- $clientUsers := coalesce .Values.auth.sasl.jaas.clientUsers .Values.auth.jaas.clientUsers }}
+  {{- $clientPasswords := coalesce .Values.auth.sasl.jaas.clientPasswords .Values.auth.jaas.clientPasswords }}
+  {{- if $clientPasswords }}
+  client-passwords: {{ join "," $clientPasswords | b64enc | quote }}
+  {{- else }}
+  {{- $passwords := list }}
+  {{- range $clientUsers }}
+  {{- $passwords = append $passwords (randAlphaNum 10) }}
+  {{- end }}
+  client-passwords: {{ join "," $passwords | b64enc | quote }}
+  {{- end }}
+  {{- end }}
+  {{- $zookeeperUser := coalesce .Values.auth.sasl.jaas.zookeeperUser .Values.auth.jaas.zookeeperUser }}
+  {{- if and .Values.zookeeper.auth.enabled $zookeeperUser }}
+  {{- $zookeeperPassword := coalesce .Values.auth.sasl.jaas.zookeeperPassword .Values.auth.jaas.zookeeperPassword }}
+  zookeeper-password: {{ default (randAlphaNum 10) $zookeeperPassword | b64enc | quote }}
+  {{- end }}
+  {{- if (include "kafka.interBroker.saslAuthentication" .) }}
+  {{- $interBrokerPassword := coalesce .Values.auth.sasl.jaas.interBrokerPassword .Values.auth.jaas.interBrokerPassword }}
+  inter-broker-password: {{ default (randAlphaNum 10) $interBrokerPassword | b64enc | quote }}
+  {{- end }}
+{{- end }}
+		</script>
+	</section>
+	<section data-auto-animate>
+		<h2>what went wrong?</h2>
+	</section>
+	<section data-auto-animate>
+		<h2>what went wrong?</h2>
+		<h5>
+			programming concepts do not belong in declarative formats
+			<h5 fragment>let’s go back to square one</h5>
+		</h5>
+	</section>
+</section>
+<section>
+	<section>
+		<h2>configuration through code</h2>
+	</section>
+	<section>
+		<ul>
+			<li>lightweight</li>
+			<li fragment>domain-specific</li>
+			<li fragment>deterministic</li>
+			<li fragment>constrained</li>
+			<li fragment>advisory</li>
+		<ul>
+	</section>
+	<section>
+		<script type="text/hljs" language="python" trim>
+@[0]{def init():}@
+	@[1]{folks}@@[2]{.observe(}@@[3]{'new_day'}@@[2]{,}@ @[4]{on_new_day}@@[2]{)}@
+
+@[5]{def on_new_day(event):}@
+	@[6]{if event.weather.is_sunny():}@
+		@[7]{folks.set_status(}@@[8]{'phil'}@@[8]{,}@ @[9]{'running'}@@[9]{)}@
+		@[7]{folks.set_status(}@@[8]{'bertrand'}@@[8]{,}@ @[9]{'trying to get baby to sleep'}@@[9]{)}@
+		@[7]{folks.set_status(}@@[8]{'mark'}@@[8]{,}@ @[9]{'gardening'}@@[9]{)}@
+		@[7]{folks.set_status(}@@[8]{'gustavo'}@@[8]{,}@ @[9]{'reviewing PRs'}@@[9]{)}@
+		@[7]{folks.set_status(}@@[8]{'rob'}@@[8]{,}@ @[9]{'making tunes'}@@[9]{)}@
+		@[7]{# ...}@
+	@[6]{else:}@
+		@[10]{folks.set_status(}@@[11]{'phil',}@ @[12]{'drenched'}@@[12]{)}@
+		@[10]{folks.set_status(}@@[11]{'bertrand',}@ @[12]{'still trying to get baby to sleep'}@@[12]{)}@
+		@[10]{folks.set_status(}@@[11]{'mark',}@ @[12]{'in-meetings'}@@[12]{)}@
+		@[10]{folks.set_status(}@@[11]{'gustavo',}@ @[12]{'reviewing PRs'}@@[12]{)}@
+		@[10]{folks.set_status(}@@[11]{'rob',}@ @[12]{'making tunes'}@@[12]{)}@
+		@[10]{# ...}@
+		</script>
+	</section>
+</section>
+<section>
+	<section>
+		<h2>constraining resources</h2>
+	</section>
+	<section>
+		<img width="60%" src="adonovan.png"/>
+		</br>
+		<img width="20%" src="adonovan-book.png" fragment/>
+	</section>
+	<section>
+		<img src="bound-cpu-issue-small.png"/>
+	</section>
+	<section>
+		<img src="bound-mem-issue.png"/>
+	</section>
+	<section data-auto-animate>
+		<h2 style="display: inline-block;">we’ve done it!</h2>
+	</section>
+	<section data-auto-animate>
+		<h2 style="display: inline-block;">we’ve done it!</h2>
+		<h2 style="display: inline-block;">*</h2>
+	</section>
+</section>
+<section>
+	<section>
+		<h2>cooperative best-effort</br>safety constraints</h2>
+	</section>
+	<section>
+		<ul>
+			<li>cooperative<span fragment>—not automatic</span></li>
+			<li fragment>best-effort<span fragment>—not infallible</span></li>
+			<li fragment>safety<span fragment>—not security</span></li>
+		</ul>
+	</section>
+	<section>
+		<h2>safeties</h2>
+		<ul>
+			<li fragment>memory</li>
+			<li fragment><span class="sc">cpu</span></li>
+			<li fragment>time</li>
+			<li fragment><span class="sc">io</span></li>
+		</ul>
+	</section>
+	<section data-auto-animate>
+		<h2>we’re here to help!</h2>
+	</section>
+	<section data-auto-animate>
+		<h2>we’re here to help!</h2>
+		<ul>
+			<li>link library, ‘<code>starform</code>’</li>
+			<li fragment>test framework, ‘<code>startest</code>’</li>
+			<li fragment>workshops</li>
+			<li fragment>documentation</li>
+		</ul>
+	</section>
+</section>
+<section>
+	<section>
+		<h2>the future of configuration</h2>
+	</section>
+	<section>
+		<ul>
+			<li><code>starlark</code> <span fragment>is ready</span></li>
+			<li fragment><code>startest</code> <span fragment>is ready</span></li>
+			<li fragment><code>starform</code> <span fragment>is not ready<span fragment>... yet</span></span></li>
+		</ul>
+	</section>
+	<section>
+		<script type="text/hljs" language="python" trim>
+def init():
+	folks.observe('new_day', on_new_day)
+
+def on_new_day(event):
+	if event.weather.is_sunny():
+		folks.set_status('phil', 'running')
+		folks.set_status('bertrand', 'trying to get baby to sleep')
+		folks.set_status('mark', 'gardening')
+		folks.set_status('gustavo', 'reviewing PRs')
+		folks.set_status('rob', 'making tunes')
+		# ...
+	else:
+		folks.set_status('phil', 'drenched')
+		folks.set_status('bertrand', 'still trying to get baby to sleep')
+		folks.set_status('mark', 'in-meetings')
+		folks.set_status('gustavo', 'reviewing PRs')
+		folks.set_status('rob', 'making tunes')
+		# ...
+		</script>
+	</section>
+</section>
+<!------------------------------------------------------------------------------>
+<!------------------------------------------------------------------------------>
+<!------------------------------------------------------------------------------>
+<!------------------------------------------------------------------------------>
+<!------------------------------------------------------------------------------>
+<!-- <section> -->
+<!-- 	<section data-auto-animate data-auto-animate-id="starlark"> -->
+<!-- 		<h1>Starlark</h1> -->
+<!-- 	</section> -->
+<!-- 	<section data-auto-animate data-auto-animate-id="starlark"> -->
+<!-- 		<h1>Starlark</h1> -->
+<!-- 		<ul> -->
+<!-- 			<li>minimalist python dialect</li> -->
+<!-- 			<li fragment>deterministic</li> -->
+<!-- 			<li fragment>configurable</li> -->
+<!-- 			<li fragment>config language of Bazel+Buck2</li> -->
+<!-- 		</ul> -->
+<!-- 	</section> -->
+<!-- 	<section data-auto-animate data-auto-animate-id="what-got"> -->
+<!-- 		<h1>what's it got?</h1> -->
+<!-- 	</section> -->
+<!-- 	<section data-auto-animate data-auto-animate-id="what-got"> -->
+<!-- 		<h1>what's it got?</h1> -->
+<!-- 		<ul> -->
+<!-- 			<li>simple data-types</li> -->
+<!-- 			<li fragment>custom data-types</li> -->
+<!-- 			<li fragment>custom builtins</li> -->
+<!-- 			<li fragment>freezing</li> -->
+<!-- 		</ul> -->
+<!-- 	</section> -->
+<!-- 	<section> -->
+<!-- 		<h1>what's it not got?</h1> -->
+<!-- 	</section> -->
+<!-- 	<section> -->
+<!-- 		<ul> -->
+<!-- 			<li>no user-made multi-threading</li> -->
+<!-- 			<li>no error-recovery</li> -->
+<!-- 			<li>no <span style="font-variant-caps: small-caps">oop,</span> just ducks</li> -->
+<!-- 			<li>no recursion</li> -->
+<!-- 			<li>no while loops</li> -->
+<!-- 		</ul> -->
+<!-- 	</section> -->
+<!-- 	<section> -->
+<!-- 		<script type="text/hljs" language="python" fragment-escape="$" trim> -->
+<!-- if weather.is_sunny(): -->
+<!-- 	set_current_activity('mark', 'gardening') -->
+<!-- 	set_current_activity('phil', 'running up mountain') -->
+<!-- 	set_current_activity('gustavo', 'reviewing PRs') -->
+<!-- 	# ... -->
+<!-- 		</script> -->
+<!-- <!if sprint_name != 'Product' or team != 'OCTO': -->
+<!-- <!	assign_room(team, rooms.pop()) -->
+<!-- <!else: -->
+<!-- <!	send_email( -->
+<!-- <!		${recipient='pedro',}$ # TODO(kcza): AT symbol -->
+<!-- <!		${subject='stop it',}$ -->
+<!-- <!		body=''' -->
+<!-- <!			Not allowed lol -->
+<!-- <!		''', -->
+<!-- <!	) -->
+<!-- 	</section> -->
+<!-- </section> -->
+<!-- <section> -->
+<!-- 	<section> -->
+<!-- 		<h1>scriptlets</h1> -->
+<!-- 	</section> -->
+<!-- 	<section> -->
+<!-- 		<ul> -->
+<!-- 			<li>Program to express config</li> -->
+<!-- 			<li>Lightweight</li> -->
+<!-- 			<li>Domain-specific</li> -->
+<!-- 			<li>Deterministic</li> -->
+<!-- 			<li>Constrained</li> -->
+<!-- 			<li>Advisory</li> -->
+<!-- 		</ul> -->
+<!-- 	</section> -->
+<!-- </section> -->
+<!-- <section> -->
+<!-- </section> -->
+
+<!-- - Things we'll cover: -->
+<!-- 	- we did a thing! -->
+<!-- 	- many aspects of safety covered -->
+<!-- 	- they need to know that this is _best-effort_ safety, not full blown security -->
+<!-- 	- why is this cool! -->
+<!-- 		- what this enables: safe arbitrary code execution -->
+<!-- 		- our users can give us their scripts and we don't need to trust them not to take everything down! (Running centrally is no longer a problem!) -->
+<!-- 	- How hard to embed? -->
+<!-- 		- Challenges? -->
+<!-- 		- How? (Best-effort, need to cooperate, not free, using `starform` will help though, however this won't be ready for another XXX months) -->
+<!-- 	- What's next? -->
+<!-- 		- Starform -->
+<!-- - Things we won't cover: -->
+<!-- 	- too many technical details -->
+<!--
+# Outcomes:
+- If you have scripting and are free to use any* language, strongly consider Starlark
+- Coming up: next cycle, we WILL get scriptlets ready!
+	- If you have a use-case, bring it to us
+- They will know WTF Starlark is
+- They will know what 'safety' is (as opposed to security)
+	- (Our definition, formal but not <span style="font-family: serif; font-style: italic;">formal</span>)
+- Could mention that for some use-cases Starlark may be sufficient but Starform is what should be used
+# Ideas
+- A retrospective---what were the challenges we faced along the way
+- Mention that it's taken 2 years
+- Mention that upstream thought it was impossible
+-->

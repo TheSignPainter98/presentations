@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "canonical-slides": "github:marco6/canonical-slides#a4c69ca"
+  }
+}
