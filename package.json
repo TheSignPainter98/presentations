@@ -1,5 +1,9 @@
 {
   "dependencies": {
     "canonical-slides": "github:marco6/canonical-slides#a4c69ca"
+  },
+  "scripts": {
+    "start": "canonical-slides --title Starlark -l ./presentation.xhtml",
+    "build": "canonical-slides --title Starlark ./presentation.xhtml -o presentation.min.html"
   }
 }
