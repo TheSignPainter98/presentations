@@ -8,9 +8,9 @@ Please notes that the following are intended as ‘checkpoints,’ they represen
 
 * Hello! Marco and I will be giving you an update of what’s been going on in the world of Scriptlets, along with some pretty exciting news
 - Today we’ll be covering
-    * item 1
-    * item 2
-    * item 3
+    * what’s the problem?
+    * what’s our solution?
+    * what’s next?
 - First up, let’s discuss the problem we’re trying to solve
 - As it stands, config is not fun
     - It may be repetitive
